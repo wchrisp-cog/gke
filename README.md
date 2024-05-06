@@ -3,9 +3,9 @@ A repo for building and testing a google Kubernetes environment via Terraform an
 
 ## Goals
 
-[ ] - Low Cost Playground GKE cluster deployed in to GCP.
-[ ] - Ability to deploy applications to GKE cluster via Helm charts.
-[ ] - Easily accessible and manage via local system (Makefile?)
+- [ ] Low Cost Playground GKE cluster deployed in to GCP.  
+- [ ] Ability to deploy applications to GKE cluster via Helm charts. 
+- [ ] Easily accessible and manage via local system (Makefile?).  
 
 ## Setup
 ```
