@@ -7,12 +7,16 @@ macos-requirements:
 	brew update
 	brew install --cask google-cloud-sdk
 	brew tap hashicorp/tap && brew install hashicorp/tap/terraform
-	brew install kubernetes-cli infracost
+	brew install kubernetes-cli infracost argocd
 	gcloud init
 	gcloud components install gke-gcloud-auth-plugin
 
 gcp.auth:
 	gcloud auth application-default login
+
+gcp.config:
+	gcloud container clusters get-credentials ${TF_VAR_cluster_name} --zone ${TF_VAR_cluster_zone} --project ${TF_VAR_project_id}
+	kubectl get all -A
 
 infracost.auth:
 	infracost auth login
@@ -41,6 +45,26 @@ tf.plan.destroy: tf.init
 tf.apply.destroy:
 	terraform -chdir=${tf-directory} apply tfplan.destroy
 
-k.creds:
-	gcloud container clusters get-credentials ${TF_VAR_cluster_name} --zone ${TF_VAR_cluster_zone} --project ${TF_VAR_project_id}
-	kubectl get all -A
+k.top:
+	kubectl top nodes
+	kubectl top pods -A
+
+argo.install:
+	kubectl create namespace argocd
+	kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+argo.uninstall:
+	kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+	kubectl delete namespace argocd
+
+argo.info:
+	kubectl get all -n argocd
+
+argo.portforward:
+	kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+argo.password:
+	argocd admin initial-password -n argocd
+	argocd login 127.0.0.1:8080
+	@echo "Please set a new admin password"
+	argocd account update-password

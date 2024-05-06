@@ -1,6 +1,7 @@
 # Example - https://github.com/terraform-google-modules/terraform-google-kubernetes-engine/tree/v30.2.0/examples/private_zonal_with_networking
 # Reference material - https://github.com/murphye/cheap-gke-cluster
 
+# K8s Network
 module "gcp-network" {
   source  = "terraform-google-modules/network/google"
   version = ">= 7.5"
@@ -31,6 +32,24 @@ module "gcp-network" {
   }
 }
 
+#K8s Router/NAT for external network requests (Internet Access)
+resource "google_compute_router" "router" {
+  name    = "${local.network_name}-router"
+  project = module.gcp-network.project_id
+  region  = var.region
+  network = module.gcp-network.network_id
+}
+
+resource "google_compute_router_nat" "nat" {
+  name                               = "${local.network_name}-nat"
+  router                             = google_compute_router.router.name
+  region                             = google_compute_router.router.region
+  project                            = google_compute_router.router.project
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+}
+
+# K8s Cluster
 module "gke" {
   source  = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
   version = "~> 30.0"
