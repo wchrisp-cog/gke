@@ -75,7 +75,7 @@ module "gke" {
   node_pools = [
     {
       name               = "default-node-pool"
-      machine_type       = "e2-small"
+      machine_type       = "e2-medium"
       min_count          = 1
       max_count          = 2
       local_ssd_count    = 0
@@ -103,4 +103,13 @@ module "gke" {
     #   display_name = "VPC"
     # },
   ]
+}
+
+# Workload Identity roles
+module "workload-identity" {
+  source     = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+  name       = "${var.cluster_name}-applications"
+  namespace  = "default"
+  project_id = var.project_id
+  roles      = ["roles/storage.admin"]
 }

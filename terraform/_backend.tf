@@ -20,6 +20,11 @@ terraform {
 provider "google" {
   project = var.project_id
   region  = var.region
+
+  default_labels = {
+    project    = "gke-playground"
+    repository = "https://github.com/wchrisp-cog/gke/tree/main"
+  }
 }
 
 provider "kubernetes" {

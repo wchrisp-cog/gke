@@ -32,18 +32,20 @@ tf.init:
 	terraform -chdir=${tf-directory} fmt
 
 tf.plan: tf.init infracost.breakdown
-	rm -f terraform/tfplan
-	terraform -chdir=${tf-directory} plan -var-file=${tf-vars-file} -out=tfplan
+	rm -f terraform/tf.plan terraform/tf.plan.json
+	terraform -chdir=${tf-directory} plan -var-file=${tf-vars-file} -out=tf.plan
+	terraform -chdir=${tf-directory} show -json tf.plan  > ${tf-directory}/tf.plan.json
+	# checkov -f ${tf-directory}/tf.plan.json
 
 tf.apply:
-	terraform -chdir=${tf-directory} apply tfplan
+	terraform -chdir=${tf-directory} apply tf.plan
 
 tf.plan.destroy: tf.init
-	rm -f terraform/tfplan.destroy
-	terraform -chdir=${tf-directory} plan -var-file=${tf-vars-file} -destroy -out=tfplan.destroy
+	rm -f terraform/tf.plan.destroy
+	terraform -chdir=${tf-directory} plan -var-file=${tf-vars-file} -destroy -out=tf.plan.destroy
 
 tf.apply.destroy:
-	terraform -chdir=${tf-directory} apply tfplan.destroy
+	terraform -chdir=${tf-directory} apply tf.plan.destroy
 
 k.top:
 	kubectl top nodes
