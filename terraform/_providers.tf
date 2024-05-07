@@ -14,7 +14,7 @@ terraform {
     }
   }
   # If you would like to use gcs as a backend
-#  backend "gcs" {}
+  backend "gcs" {}
 }
 
 provider "google" {
