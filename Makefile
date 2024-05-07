@@ -35,11 +35,11 @@ infracost.breakdown:
 tf.init:
 	@if [ "${TF_STATE_FILE_BUCKET}" = "" ]; then\
 		echo "Using local backend.";\
-		sed -i.bak '/backend "gcs" {}/s/^/#/' ${TF_DIRECTORY}/_providers.tf;\
+		sed -i.bak 's/ backend "gcs" {}/#backend "gcs" {}/g' ${TF_DIRECTORY}/_providers.tf;\
 		terraform -chdir=${TF_DIRECTORY} init;\
 	else\
 		echo "Using remote backend.";\
-		sed -i.bak '/#backend "gcs" {}/s/^//' ${TF_DIRECTORY}/_providers.tf;\
+		sed -i.bak 's/#backend "gcs" {}/ backend "gcs" {}/g' ${TF_DIRECTORY}/_providers.tf;\
 		terraform -chdir=${TF_DIRECTORY} init\
 			-backend-config="bucket=${TF_STATE_FILE_BUCKET}"\
 			-backend-config="prefix=${GIT_REPO}";\
