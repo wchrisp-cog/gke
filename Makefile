@@ -1,16 +1,21 @@
-tf-directory=terraform
-tf-vars-file=variables.tfvars
+GIT_REPO ?= $(shell basename `git rev-parse --show-toplevel`)
+TF_ENV_VERSION = latest:^1.8.0
+TF_DIRECTORY = terraform
+TF_VARS_FILE = variables.tfvars
 
 export
 
+.PHONY: macos-requirements
 macos-requirements:
 	brew update
 	brew install --cask google-cloud-sdk
-	brew tap hashicorp/tap && brew install hashicorp/tap/terraform
-	brew install kubernetes-cli infracost argocd
+	brew install kubernetes-cli infracost argocd tfenv checkov
+	tfenv install ${TF_ENV_VERSION}
+	tfenv use ${TF_ENV_VERSION}
 	gcloud init
 	gcloud components install gke-gcloud-auth-plugin
 
+.PHONY: gcp.auth gcp.config infracost.auth auth infracost.breakdown
 gcp.auth:
 	gcloud auth application-default login
 
@@ -24,29 +29,43 @@ infracost.auth:
 auth: gcp.auth infracost.auth
 
 infracost.breakdown:
-	infracost breakdown --path ${tf-directory}  --terraform-var-file ${tf-vars-file} --show-skipped
+	infracost breakdown --path ${TF_DIRECTORY}  --terraform-var-file ${TF_VARS_FILE} --show-skipped
 
+.PHONY: tf.init tf.fmt tf.plan tf.apply tf.plan.destroy tf.apply.destroy
 tf.init:
-	terraform -chdir=${tf-directory} init
-	terraform -chdir=${tf-directory} validate
-	terraform -chdir=${tf-directory} fmt
+	@if [ "${TF_STATE_FILE_BUCKET}" = "" ]; then\
+		echo "Using local backend.";\
+		sed -i.bak '/backend "gcs" {}/s/^/#/' ${TF_DIRECTORY}/_providers.tf;\
+		terraform -chdir=${TF_DIRECTORY} init;\
+	else\
+		echo "Using remote backend.";\
+		sed -i.bak '/#backend "gcs" {}/s/^//' ${TF_DIRECTORY}/_providers.tf;\
+		terraform -chdir=${TF_DIRECTORY} init\
+			-backend-config="bucket=${TF_STATE_FILE_BUCKET}"\
+			-backend-config="prefix=${GIT_REPO}";\
+	fi 
+	terraform -chdir=${TF_DIRECTORY} validate
+	
+tf.fmt:
+	terraform -chdir=${TF_DIRECTORY} fmt --check --diff --recursive
 
-tf.plan: tf.init infracost.breakdown
+tf.plan: tf.init tf.fmt infracost.breakdown
 	rm -f terraform/tf.plan terraform/tf.plan.json
-	terraform -chdir=${tf-directory} plan -var-file=${tf-vars-file} -out=tf.plan
-	terraform -chdir=${tf-directory} show -json tf.plan  > ${tf-directory}/tf.plan.json
-	# checkov -f ${tf-directory}/tf.plan.json
+	terraform -chdir=${TF_DIRECTORY} plan -var-file=${TF_VARS_FILE} -out=tf.plan
+	terraform -chdir=${TF_DIRECTORY} show -json tf.plan  > ${TF_DIRECTORY}/tf.plan.json
+	# checkov -f ${TF_DIRECTORY}/tf.plan.json
 
 tf.apply:
-	terraform -chdir=${tf-directory} apply tf.plan
+	terraform -chdir=${TF_DIRECTORY} apply tf.plan
 
 tf.plan.destroy: tf.init
 	rm -f terraform/tf.plan.destroy
-	terraform -chdir=${tf-directory} plan -var-file=${tf-vars-file} -destroy -out=tf.plan.destroy
+	terraform -chdir=${TF_DIRECTORY} plan -var-file=${TF_VARS_FILE} -destroy -out=tf.plan.destroy
 
 tf.apply.destroy:
-	terraform -chdir=${tf-directory} apply tf.plan.destroy
+	terraform -chdir=${TF_DIRECTORY} apply tf.plan.destroy
 
+.PHONY: k.top argo.install argo.uninstall argo.info argo.portforward argo.password
 k.top:
 	kubectl top nodes
 	kubectl top pods -A
