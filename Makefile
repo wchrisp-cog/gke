@@ -15,13 +15,9 @@ macos-requirements:
 	gcloud init
 	gcloud components install gke-gcloud-auth-plugin
 
-.PHONY: gcp.auth gcp.config infracost.auth auth infracost.breakdown
+.PHONY: gcp.auth infracost.auth auth infracost.breakdown
 gcp.auth:
 	gcloud auth application-default login
-
-gcp.config:
-	gcloud container clusters get-credentials ${TF_VAR_cluster_name} --zone ${TF_VAR_cluster_zone} --project ${TF_VAR_project_id}
-	kubectl get all -A
 
 infracost.auth:
 	infracost auth login
@@ -65,7 +61,11 @@ tf.plan.destroy: tf.init
 tf.apply.destroy:
 	terraform -chdir=${TF_DIRECTORY} apply tf.plan.destroy
 
-.PHONY: k.top argo.install argo.uninstall argo.info argo.portforward argo.password
+.PHONY: k.config k.top argo.install argo.uninstall argo.info argo.portforward argo.password
+k.config:
+	gcloud container clusters get-credentials ${TF_VAR_cluster_name} --zone ${TF_VAR_cluster_zone} --project ${TF_VAR_project_id}
+	kubectl get all -A
+
 k.top:
 	kubectl top nodes
 	kubectl top pods -A
