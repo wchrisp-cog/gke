@@ -114,10 +114,11 @@ module "workload-identity" {
   roles      = []
 }
 
-module "workload-identity-2" {
-  source     = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  name       = "${var.cluster_name}-external-secrets"
-  namespace  = "default"
-  project_id = var.project_id
-  roles      = []
-}
+# module "external-secrets-identity" {
+#   source              = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+#   name                = "external-secrets"
+#   namespace           = "external-secrets"
+#   project_id          = var.project_id
+#   use_existing_k8s_sa = true
+#   roles               = ["roles/secretmanager.secretAccessor"]
+# }

@@ -12,7 +12,7 @@ A repo for building and testing a google Kubernetes environment via Terraform an
 
 ## Setup
 ```
-export TF_VAR_project_id="project123456"
+export TF_VAR_project_id="playground-422102"
 export TF_VAR_region="australia-southeast1"
 export TF_VAR_cluster_zone="australia-southeast1-a"
 export TF_VAR_cluster_name="playground"
