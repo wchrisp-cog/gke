@@ -1,5 +1,5 @@
 GIT_REPO ?= $(shell basename `git rev-parse --show-toplevel`)
-TF_ENV_VERSION = latest:^1.8.0
+# TF_ENV_VERSION = latest:^1.8.0
 TF_DIRECTORY = terraform
 TF_VARS_FILE = variables.tfvars
 
