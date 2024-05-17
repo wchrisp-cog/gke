@@ -35,3 +35,5 @@ terraform.rc
 
 .infracost
 terraform/_providers.tf.bak
+
+.env

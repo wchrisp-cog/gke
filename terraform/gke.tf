@@ -77,7 +77,7 @@ module "gke" {
       name               = "default-node-pool"
       machine_type       = var.machine_type
       min_count          = 1
-      max_count          = 2
+      max_count          = 1
       local_ssd_count    = 0
       spot               = true
       disk_size_gb       = 20
@@ -88,7 +88,7 @@ module "gke" {
       logging_variant    = "DEFAULT"
       auto_repair        = true
       auto_upgrade       = true
-      initial_node_count = 2
+      initial_node_count = 1
     },
   ]
 
